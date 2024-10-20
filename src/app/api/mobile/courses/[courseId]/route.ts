@@ -1,6 +1,11 @@
 import db from '@/db';
 import { NextResponse, NextRequest } from 'next/server';
 
+
+/**
+ * not merging query with content query as we
+ * need to check if user has access to the course first
+ */
 async function checkUserCourseAccess(userId: string, courseId: string) {
   const userCourse = await db.course.findFirst({
     where: {
