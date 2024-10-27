@@ -1,25 +1,21 @@
 import db from '@/db';
 import { NextRequest, NextResponse } from 'next/server';
+import { checkUserCourse } from '@/app/api/mobile/utils/courseUtil';
 
-export async function GET(req : NextRequest,{ params }: { params: { contentId: string } }) {
+export async function GET(req: NextRequest, { params }: { params: { courseId: string; collectionId : string; contentId: string } }) {
   try {
-    const { contentId } = params;
+    const {courseId, contentId } = params;
     const user = JSON.parse(req.headers.get('g') || '');
+
+    const userCourses = await checkUserCourse(user.id, courseId);
+
+    if (!userCourses) {
+      return NextResponse.json({ message: 'User does not have access to this collection or collection is empty' }, { status: 403 });
+    }
 
     const contents = await db.content.findUnique({
       where: {
         id: parseInt(contentId, 10),
-        courses: {
-          some: {
-            course: {
-              purchasedBy: {
-                some: {
-                  userId: user.id,
-                },
-              },
-            },
-          },
-        },
       },
       select: {
         id: true,
